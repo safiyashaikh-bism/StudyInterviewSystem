@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study & Interview Preparation System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>StudyHub</h1>
+        <p>Your personal study and placement preparation dashboard</p>
+    </header>
+
+    <main>
+        <section class="welcome">
+            <h2>Welcome back!</h2>
+            <p>Plan your study sessions, track DSA practice, and prepare for interviews.</p>
+        </section>
+
+        <section class="dashboard">
+            
+<div class="card">
+    <h3>Study Planner</h3>
+    <p>Organize your daily study tasks.</p>
+
+    <div class="task-input">
+        <input
+            type="text"
+            id="taskInput"
+            placeholder="Enter a study task..."
+        >
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+
+            <div class="card">
+                <h3>DSA Tracker</h3>
+                <p>Keep track of coding problems you solve.</p>
+                <span>Build consistency</span>
+            </div>
+
+            
+<div class="card">
+    <h3>Interview Preparation</h3>
+    <p>Prepare important topics for technical interviews.</p>
+
+    <div class="task-input">
+        <select id="interviewSubject">
+            <option value="Java">Java</option>
+            <option value="DBMS">DBMS</option>
+            <option value="Operating Systems">Operating Systems</option>
+            <option value="Computer Networks">Computer Networks</option>
+        </select>
+
+        <input
+            type="text"
+            id="interviewTopic"
+            placeholder="Enter a topic..."
+        >
+
+        <button onclick="addInterviewTopic()">Add</button>
+    </div>
+
+    <ul id="interviewList"></ul>
+</div>
+
+            
+<div class="card">
+    <h3>DSA Tracker</h3>
+    <p>Track the coding problems you solve.</p>
+
+    <div class="task-input">
+        <input
+            type="text"
+            id="dsaInput"
+            placeholder="Enter problem name..."
+        >
+
+        <select id="dsaDifficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+
+        <button onclick="addDsaProblem()">Add</button>
+    </div>
+
+    <ul id="dsaList"></ul>
+</div>
+
+            
+<div class="card">
+    <h3>Progress Overview</h3>
+    <p>Track your study and coding progress.</p>
+
+    <div class="progress-item">
+        <span>Total Study Tasks</span>
+        <strong id="totalTasks">0</strong>
+    </div>
+
+    <div class="progress-item">
+        <span>Completed Tasks</span>
+        <strong id="completedTasks">0</strong>
+    </div>
+
+    <div class="progress-item">
+        <span>Total DSA Problems</span>
+        <strong id="totalDsa">0</strong>
+    </div>
+
+    <div class="progress-item">
+        <span>Solved Problems</span>
+        <strong id="solvedDsa">0</strong>
+    </div>
+    
+<div class="progress-item">
+    <span>Total Interview Topics</span>
+    <strong id="totalInterview">0</strong>
+</div>
+
+<div class="progress-item">
+    <span>Completed Interview Topics</span>
+    <strong id="completedInterview">0</strong>
+</div>
+
+
+    <div class="progress-bar">
+        <div id="progressFill"></div>
+    </div>
+
+    <p id="progressText">0% completed</p>
+</div>
+
+        </section>
+
+<!-- Java Interview Questions -->
+<section id="java-questions" class="dashboard-section">
+    <h2>Java Interview Questions</h2>
+    <p>Practice important Java concepts for technical interviews.</p>
+    
+<div class="revision-progress">
+    <div class="revision-progress-info">
+        <span>Java Revision Progress</span>
+        <strong id="reviewedCount">0 / 10 reviewed</strong>
+    </div>
+
+    <div class="progress-bar">
+        <div id="reviewProgressFill"></div>
+    </div>
+
+    <p id="reviewProgressText">0% reviewed</p>
+</div>
+
+    <div class="question-controls">
+        <input
+            type="text"
+            id="questionSearch"
+            placeholder="Search Java questions..."
+        >
+
+        <select id="questionTopic">
+            <option value="All">All Topics</option>
+            <option value="Core Java">Core Java</option>
+            <option value="OOP">OOP Concepts</option>
+            <option value="Strings">Strings</option>
+            <option value="Collections">Collections</option>
+        </select>
+    </div>
+
+    <div id="questionList"></div>
+</section>
+
+        <footer>
+            <p>StudyHub · Learn consistently. Prepare confidently.</p>
+        </footer>
+    </main>
+<script src="script.js"></script>
+</body>
+</html>
