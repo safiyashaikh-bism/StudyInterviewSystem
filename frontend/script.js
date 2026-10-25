@@ -1,12 +1,8 @@
 let tasks = JSON.parse(localStorage.getItem("studyTasks")) || [];
 
-let dsaProblems = JSON.parse(localStorage.getItem("dsaProblems")) || [];
+let dsaProblems = [];
 
-let interviewTopics =
-    JSON.parse(localStorage.getItem("interviewTopics")) || [];
-
-
-
+let interviewTopics = [];
 
 function saveTasks() {
     localStorage.setItem("studyTasks", JSON.stringify(tasks));
@@ -31,21 +27,82 @@ function displayTasks() {
             taskLabel.style.textDecoration = "line-through";
         }
 
-        checkbox.addEventListener("change", function () {
-            tasks[index].completed = checkbox.checked;
+        checkbox.addEventListener("change", async function () {
+            const previousStatus = tasks[index].completed;
+            const newStatus = checkbox.checked;
+
+            // Update the webpage
+            tasks[index].completed = newStatus;
             saveTasks();
             displayTasks();
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/tasks/${task.id}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            completed: newStatus
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+    const errorDetails = await response.text();
+
+    console.error("HTTP status:", response.status);
+    console.error("Backend response:", errorDetails);
+
+    throw new Error("Failed to update task");
+}
+
+                console.log("Task completion updated in backend!");
+
+            } catch (error) {
+                console.error("Could not update backend:", error);
+
+                // Restore the previous status if the update fails
+                tasks[index].completed = previousStatus;
+                saveTasks();
+                displayTasks();
+
+                alert("Could not update task in the backend.");
+            }
         });
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.className = "delete-button";
 
-        deleteButton.addEventListener("click", function () {
-            tasks.splice(index, 1);
-            saveTasks();
-            displayTasks();
-        });
+        
+deleteButton.addEventListener("click", async function () {
+    try {
+        const response = await fetch(
+            `http://localhost:8080/api/tasks/${task.id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to delete task");
+        }
+
+        tasks.splice(index, 1);
+        saveTasks();
+        displayTasks();
+
+        console.log("Task deleted from backend successfully!");
+
+    } catch (error) {
+        console.error("Error deleting task:", error);
+        alert("Could not delete task from the backend.");
+    }
+});
+
 
         li.appendChild(checkbox);
         li.appendChild(taskLabel);
@@ -57,7 +114,8 @@ function displayTasks() {
     updateProgress();
 }
 
-function addTask() {
+
+async function addTask() {
     const taskInput = document.getElementById("taskInput");
     const taskText = taskInput.value.trim();
 
@@ -66,24 +124,43 @@ function addTask() {
         return;
     }
 
-    tasks.push({
-        text: taskText,
-        completed: false
-    });
+    try {
+        const response = await fetch("http://localhost:8080/api/tasks", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title: taskText
+            })
+        });
 
-    saveTasks();
-    displayTasks();
+        if (!response.ok) {
+            throw new Error("Failed to add study task");
+        }
 
-    taskInput.value = "";
-    taskInput.focus();
+        const newTask = await response.json();
+
+        console.log("Task added to backend:", newTask);
+
+        tasks.push({
+    id: newTask.id,
+    text: newTask.title,
+    completed: newTask.completed
+});
+
+        saveTasks();
+        displayTasks();
+
+        taskInput.value = "";
+        taskInput.focus();
+
+    } catch (error) {
+        console.error("Error adding task:", error);
+        alert("Could not add task to the backend. Please check that Spring Boot is running.");
+    }
 }
 
-
-
-
-function saveDsaProblems() {
-    localStorage.setItem("dsaProblems", JSON.stringify(dsaProblems));
-}
 
 function displayDsaProblems() {
     const dsaList = document.getElementById("dsaList");
@@ -105,20 +182,62 @@ function displayDsaProblems() {
             problemInfo.style.textDecoration = "line-through";
         }
 
-        solvedCheckbox.addEventListener("change", function () {
-            dsaProblems[index].solved = solvedCheckbox.checked;
-            saveDsaProblems();
-            displayDsaProblems();
+        solvedCheckbox.addEventListener("change", async function () {
+            const previousStatus = problem.solved;
+            const newStatus = solvedCheckbox.checked;
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/dsa/${problem.id}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            solved: newStatus
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to update DSA problem");
+                }
+
+                dsaProblems[index].solved = newStatus;
+                displayDsaProblems();
+
+            } catch (error) {
+                console.error("Error updating DSA problem:", error);
+                solvedCheckbox.checked = previousStatus;
+                alert("Could not update the DSA problem in the database.");
+            }
         });
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.className = "delete-button";
 
-        deleteButton.addEventListener("click", function () {
-            dsaProblems.splice(index, 1);
-            saveDsaProblems();
-            displayDsaProblems();
+        deleteButton.addEventListener("click", async function () {
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/dsa/${problem.id}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to delete DSA problem");
+                }
+
+                dsaProblems.splice(index, 1);
+                displayDsaProblems();
+
+            } catch (error) {
+                console.error("Error deleting DSA problem:", error);
+                alert("Could not delete the DSA problem from the database.");
+            }
         });
 
         li.appendChild(solvedCheckbox);
@@ -131,7 +250,9 @@ function displayDsaProblems() {
     updateProgress();
 }
 
-function addDsaProblem() {
+
+
+async function addDsaProblem() {
     const input = document.getElementById("dsaInput");
     const difficulty = document.getElementById("dsaDifficulty");
     const name = input.value.trim();
@@ -141,28 +262,45 @@ function addDsaProblem() {
         return;
     }
 
-    dsaProblems.push({
-        name: name,
-        difficulty: difficulty.value,
-        solved: false
-    });
+    try {
+        const response = await fetch("http://localhost:8080/api/dsa", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: name,
+                difficulty: difficulty.value,
+                solved: false
+            })
+        });
 
-    saveDsaProblems();
-    displayDsaProblems();
+        if (!response.ok) {
+            throw new Error("Failed to add DSA problem");
+        }
 
-    input.value = "";
-    input.focus();
+        const newProblem = await response.json();
+
+        dsaProblems.push({
+            id: newProblem.id,
+            name: newProblem.name,
+            difficulty: newProblem.difficulty,
+            solved: newProblem.solved
+        });
+
+        displayDsaProblems();
+
+        input.value = "";
+        input.focus();
+
+        console.log("DSA problem saved to MySQL:", newProblem);
+
+    } catch (error) {
+        console.error("Error adding DSA problem:", error);
+        alert("Could not save the DSA problem. Please check that Spring Boot is running.");
+    }
 }
 
-
-
-
-function saveInterviewTopics() {
-    localStorage.setItem(
-        "interviewTopics",
-        JSON.stringify(interviewTopics)
-    );
-}
 
 function displayInterviewTopics() {
     const interviewList = document.getElementById("interviewList");
@@ -183,21 +321,66 @@ function displayInterviewTopics() {
             topicLabel.style.textDecoration = "line-through";
         }
 
-        checkbox.addEventListener("change", function () {
-            interviewTopics[index].completed = checkbox.checked;
-            saveInterviewTopics();
-            displayInterviewTopics();
-        });
+        
+checkbox.addEventListener("change", async function () {
+    const topic = interviewTopics[index];
+
+    try {
+        const response = await fetch(
+            `http://localhost:8080/api/interview-topics/${topic.id}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    completed: checkbox.checked
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to update topic");
+        }
+
+        topic.completed = checkbox.checked;
+        displayInterviewTopics();
+    } catch (error) {
+        alert("Could not update topic. Please try again.");
+        checkbox.checked = topic.completed;
+        console.error(error);
+    }
+});
+
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.className = "delete-button";
 
-        deleteButton.addEventListener("click", function () {
-            interviewTopics.splice(index, 1);
-            saveInterviewTopics();
-            displayInterviewTopics();
-        });
+        
+deleteButton.addEventListener("click", async function () {
+    const topic = interviewTopics[index];
+
+    try {
+        const response = await fetch(
+            `http://localhost:8080/api/interview-topics/${topic.id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to delete topic");
+        }
+
+        interviewTopics.splice(index, 1);
+        displayInterviewTopics();
+    } catch (error) {
+        alert("Could not delete topic. Please try again.");
+        console.error(error);
+    }
+});
+
 
         li.appendChild(checkbox);
         li.appendChild(topicLabel);
@@ -209,7 +392,8 @@ function displayInterviewTopics() {
     updateProgress();
 }
 
-function addInterviewTopic() {
+
+async function addInterviewTopic() {
     const subject = document.getElementById("interviewSubject").value;
     const topicInput = document.getElementById("interviewTopic");
     const name = topicInput.value.trim();
@@ -219,21 +403,38 @@ function addInterviewTopic() {
         return;
     }
 
-    interviewTopics.push({
-        subject: subject,
-        name: name,
-        completed: false
-    });
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/interview-topics",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    subject: subject,
+                    name: name,
+                    completed: false
+                })
+            }
+        );
 
-    saveInterviewTopics();
-    displayInterviewTopics();
+        if (!response.ok) {
+            throw new Error("Failed to add interview topic");
+        }
 
-    topicInput.value = "";
-    topicInput.focus();
+        const savedTopic = await response.json();
+        interviewTopics.push(savedTopic);
+
+        displayInterviewTopics();
+
+        topicInput.value = "";
+        topicInput.focus();
+    } catch (error) {
+        alert("Could not add topic. Please check whether the backend is running.");
+        console.error(error);
+    }
 }
-
-
-
 
 function updateProgress() {
     const totalTasks = tasks.length;
@@ -489,3 +690,88 @@ document.getElementById("questionTopic").addEventListener(
 /* Load Questions */
 
 displayJavaQuestions();
+// Test connection with Spring Boot
+
+ // Connect StudyHub to the Spring Boot backend
+
+async function loadTasksFromBackend() {
+    try {
+        const response = await fetch("http://localhost:8080/api/tasks");
+
+        if (!response.ok) {
+            throw new Error("Failed to load study tasks");
+        }
+
+        const backendTasks = await response.json();
+
+        // Convert backend tasks to the format used by StudyHub
+        tasks = backendTasks.map(task => ({
+    id: task.id,
+    text: task.title,
+    completed: task.completed
+}));
+
+        // Display the tasks on the webpage
+        saveTasks();
+        displayTasks();
+
+        console.log("Study tasks loaded successfully!");
+        console.table(backendTasks);
+
+    } catch (error) {
+        console.error("Backend connection failed:", error);
+    }
+}
+
+async function loadDsaProblemsFromBackend() {
+    try {
+        const response = await fetch("http://localhost:8080/api/dsa");
+
+        if (!response.ok) {
+            throw new Error("Failed to load DSA problems");
+        }
+
+        const backendProblems = await response.json();
+
+        dsaProblems = backendProblems.map(function (problem) {
+            return {
+                id: problem.id,
+                name: problem.name,
+                difficulty: problem.difficulty,
+                solved: problem.solved
+            };
+        });
+
+        displayDsaProblems();
+
+        console.log("DSA problems loaded successfully!");
+        console.table(backendProblems);
+
+    } catch (error) {
+        console.error("Failed to load DSA problems:", error);
+        alert("Could not load DSA problems. Please check that Spring Boot is running.");
+    }
+}
+
+
+async function loadInterviewTopicsFromBackend() {
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/interview-topics"
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to load interview topics");
+        }
+
+        interviewTopics = await response.json();
+        displayInterviewTopics();
+    } catch (error) {
+        console.error("Error loading interview topics:", error);
+        alert("Could not load interview topics. Please check the backend.");
+    }
+}
+
+loadTasksFromBackend();
+loadDsaProblemsFromBackend();
+loadInterviewTopicsFromBackend();
