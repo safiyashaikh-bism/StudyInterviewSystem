@@ -1,10 +1,14 @@
 
 package com.safiya.studyinterviewsystem;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -19,13 +23,12 @@ public class StudyTask {
 
     private Boolean completed;
 
-    public StudyTask() {
-    }
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    public StudyTask(Long id, String title, Boolean completed) {
-        this.id = id;
-        this.title = title;
-        this.completed = completed;
+    public StudyTask() {
     }
 
     public Long getId() {
@@ -50,5 +53,13 @@ public class StudyTask {
 
     public void setCompleted(Boolean completed) {
         this.completed = completed;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

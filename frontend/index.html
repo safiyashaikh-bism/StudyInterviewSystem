@@ -14,8 +14,79 @@
         <p>Your personal study and placement preparation dashboard</p>
     </header>
 
-    <main>
+    
+<main>
+    <section id="auth-section" class="dashboard-section">
+        <h2>Welcome to StudyHub</h2>
+        <p>Register or log in to access your study dashboard.</p>
+
+        <div class="card">
+            <h3>Create Account</h3>
+
+            <form id="registerForm">
+                <input
+                    type="text"
+                    id="registerName"
+                    placeholder="Your name"
+                    required
+                >
+
+                <input
+                    type="email"
+                    id="registerEmail"
+                    placeholder="Your email"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Password (minimum 8 characters)"
+                    minlength="8"
+                    required
+                >
+
+                <button type="submit">Register</button>
+            </form>
+
+            <p id="registerMessage" role="status"></p>
+        </div>
+
+        <div class="card">
+            <h3>Log In</h3>
+
+            <form id="loginForm">
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="Your email"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Your password"
+                    required
+                >
+
+                <button type="submit">Log In</button>
+            </form>
+
+            <p id="loginMessage" role="status"></p>
+        </div>
+    </section>
+
+    <section id="app-dashboard" hidden>
+        
+<div class="card">
+    <p id="userStatus">You are logged in.</p>
+    <button type="button" id="logoutButton">Log Out</button>
+    <p id="logoutMessage" role="status"></p>
+</div>
+
         <section class="welcome">
+
             <h2>Welcome back!</h2>
             <p>Plan your study sessions, track DSA practice, and prepare for interviews.</p>
         </section>

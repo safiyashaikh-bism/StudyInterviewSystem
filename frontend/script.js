@@ -37,18 +37,21 @@ function displayTasks() {
             displayTasks();
 
             try {
-                const response = await fetch(
-                    `http://localhost:8080/api/tasks/${task.id}`,
-                    {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            completed: newStatus
-                        })
-                    }
-                );
+                
+const response = await fetch(
+    `http://localhost:8080/api/tasks/${task.id}`,
+    {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            completed: newStatus
+        })
+    }
+);
+
 
                 if (!response.ok) {
     const errorDetails = await response.text();
@@ -83,8 +86,9 @@ deleteButton.addEventListener("click", async function () {
         const response = await fetch(
             `http://localhost:8080/api/tasks/${task.id}`,
             {
-                method: "DELETE"
-            }
+    method: "DELETE",
+    credentials: "include"
+}
         );
 
         if (!response.ok) {
@@ -125,11 +129,14 @@ async function addTask() {
     }
 
     try {
-        const response = await fetch("http://localhost:8080/api/tasks", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+        
+const response = await fetch("http://localhost:8080/api/tasks", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+        "Content-Type": "application/json"
+    },
+
             body: JSON.stringify({
                 title: taskText
             })
@@ -190,14 +197,15 @@ function displayDsaProblems() {
                 const response = await fetch(
                     `http://localhost:8080/api/dsa/${problem.id}`,
                     {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            solved: newStatus
-                        })
-                    }
+    method: "PUT",
+    credentials: "include",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        solved: newStatus
+    })
+}
                 );
 
                 if (!response.ok) {
@@ -223,8 +231,9 @@ function displayDsaProblems() {
                 const response = await fetch(
                     `http://localhost:8080/api/dsa/${problem.id}`,
                     {
-                        method: "DELETE"
-                    }
+    method: "DELETE",
+    credentials: "include"
+}
                 );
 
                 if (!response.ok) {
@@ -264,16 +273,15 @@ async function addDsaProblem() {
 
     try {
         const response = await fetch("http://localhost:8080/api/dsa", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: name,
-                difficulty: difficulty.value,
-                solved: false
-            })
-        });
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+        name: name,
+        difficulty: difficulty.value,
+        solved: false
+    })
+});
 
         if (!response.ok) {
             throw new Error("Failed to add DSA problem");
@@ -330,6 +338,7 @@ checkbox.addEventListener("change", async function () {
             `http://localhost:8080/api/interview-topics/${topic.id}`,
             {
                 method: "PUT",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -365,8 +374,9 @@ deleteButton.addEventListener("click", async function () {
         const response = await fetch(
             `http://localhost:8080/api/interview-topics/${topic.id}`,
             {
-                method: "DELETE"
-            }
+    method: "DELETE",
+    credentials: "include"
+}
         );
 
         if (!response.ok) {
@@ -407,11 +417,14 @@ async function addInterviewTopic() {
         const response = await fetch(
             "http://localhost:8080/api/interview-topics",
             {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
+                
+method: "POST",
+credentials: "include",
+headers: {
+    "Content-Type": "application/json"
+},
+body: JSON.stringify({
+
                     subject: subject,
                     name: name,
                     completed: false
@@ -696,7 +709,11 @@ displayJavaQuestions();
 
 async function loadTasksFromBackend() {
     try {
-        const response = await fetch("http://localhost:8080/api/tasks");
+        
+const response = await fetch("http://localhost:8080/api/tasks", {
+    credentials: "include"
+});
+
 
         if (!response.ok) {
             throw new Error("Failed to load study tasks");
@@ -725,7 +742,9 @@ async function loadTasksFromBackend() {
 
 async function loadDsaProblemsFromBackend() {
     try {
-        const response = await fetch("http://localhost:8080/api/dsa");
+        const response = await fetch("http://localhost:8080/api/dsa", {
+    credentials: "include"
+});
 
         if (!response.ok) {
             throw new Error("Failed to load DSA problems");
@@ -756,9 +775,9 @@ async function loadDsaProblemsFromBackend() {
 
 async function loadInterviewTopicsFromBackend() {
     try {
-        const response = await fetch(
-            "http://localhost:8080/api/interview-topics"
-        );
+        const response = await fetch("http://localhost:8080/api/interview-topics", {
+    credentials: "include"
+});
 
         if (!response.ok) {
             throw new Error("Failed to load interview topics");
@@ -772,6 +791,113 @@ async function loadInterviewTopicsFromBackend() {
     }
 }
 
-loadTasksFromBackend();
-loadDsaProblemsFromBackend();
-loadInterviewTopicsFromBackend();
+
+/* =========================
+   STUDYHUB AUTHENTICATION
+========================= */
+
+const API_BASE = "http://localhost:8080";
+
+document.getElementById("registerForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const message = document.getElementById("registerMessage");
+    message.textContent = "Registering...";
+
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: document.getElementById("registerName").value.trim(),
+                email: document.getElementById("registerEmail").value.trim(),
+                password: document.getElementById("registerPassword").value
+            })
+        });
+
+        const result = await response.text();
+
+        if (!response.ok) {
+            throw new Error(result || "Registration failed.");
+        }
+
+        message.textContent = result + " You can now log in.";
+        document.getElementById("registerForm").reset();
+
+    } catch (error) {
+        message.textContent = error.message;
+    }
+});
+
+document.getElementById("loginForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const message = document.getElementById("loginMessage");
+    message.textContent = "Logging in...";
+
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: document.getElementById("loginEmail").value.trim(),
+                password: document.getElementById("loginPassword").value
+            })
+        });
+
+        const result = await response.text();
+
+        if (!response.ok) {
+            throw new Error(result || "Login failed.");
+        }
+
+        message.textContent = result;
+
+        document.getElementById("auth-section").hidden = true;
+        document.getElementById("app-dashboard").hidden = false;
+
+        document.getElementById("userStatus").textContent =
+            "Logged in as " + document.getElementById("loginEmail").value.trim();
+
+        document.getElementById("loginForm").reset();
+
+        await loadTasksFromBackend();
+        await loadDsaProblemsFromBackend();
+        await loadInterviewTopicsFromBackend();
+
+    } catch (error) {
+        message.textContent = error.message;
+    }
+});
+
+
+document.getElementById("logoutButton").addEventListener("click", async function () {
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/logout`, {
+            method: "POST",
+            credentials: "include"
+        });
+
+        const result = await response.text();
+
+        if (!response.ok) {
+            throw new Error(result || "Logout failed.");
+        }
+
+        document.getElementById("auth-section").hidden = false;
+        document.getElementById("app-dashboard").hidden = true;
+
+        document.getElementById("userStatus").textContent = "";
+        alert("Logged out successfully!");
+
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Could not log out. Please try again.");
+    }
+});
+
