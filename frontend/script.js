@@ -1,3 +1,40 @@
+
+
+let csrfToken = "";
+
+async function initializeCsrfToken() {
+    const response = await fetch(`${API_BASE}/api/csrf`, {
+        method: "GET",
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to initialize CSRF token");
+    }
+
+    const data = await response.json();
+
+    // Read the CSRF token from the XSRF-TOKEN cookie
+    const cookies = document.cookie.split("; ");
+
+    const csrfCookie = cookies.find(cookie =>
+        cookie.startsWith("XSRF-TOKEN=")
+    );
+
+    if (csrfCookie) {
+        csrfToken = decodeURIComponent(
+            csrfCookie.substring("XSRF-TOKEN=".length)
+        );
+    } else {
+        csrfToken = data.token;
+    }
+}
+
+function getCsrfToken() {
+    return csrfToken;
+}
+
+
 let tasks = JSON.parse(localStorage.getItem("studyTasks")) || [];
 
 let dsaProblems = [];
@@ -38,19 +75,22 @@ function displayTasks() {
 
             try {
                 
+
 const response = await fetch(
     `http://localhost:8080/api/tasks/${task.id}`,
     {
         method: "PUT",
         credentials: "include",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": getCsrfToken()
         },
         body: JSON.stringify({
             completed: newStatus
         })
     }
 );
+
 
 
                 if (!response.ok) {
@@ -83,13 +123,18 @@ const response = await fetch(
         
 deleteButton.addEventListener("click", async function () {
     try {
-        const response = await fetch(
-            `http://localhost:8080/api/tasks/${task.id}`,
-            {
-    method: "DELETE",
-    credentials: "include"
-}
-        );
+        
+const response = await fetch(
+    `http://localhost:8080/api/tasks/${task.id}`,
+    {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+            "X-XSRF-TOKEN": getCsrfToken()
+        }
+    }
+);
+
 
         if (!response.ok) {
             throw new Error("Failed to delete task");
@@ -130,17 +175,19 @@ async function addTask() {
 
     try {
         
+
 const response = await fetch("http://localhost:8080/api/tasks", {
     method: "POST",
     credentials: "include",
     headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-XSRF-TOKEN": getCsrfToken()
     },
+    body: JSON.stringify({
+        title: taskText
+    })
+});
 
-            body: JSON.stringify({
-                title: taskText
-            })
-        });
 
         if (!response.ok) {
             throw new Error("Failed to add study task");
@@ -194,19 +241,22 @@ function displayDsaProblems() {
             const newStatus = solvedCheckbox.checked;
 
             try {
-                const response = await fetch(
-                    `http://localhost:8080/api/dsa/${problem.id}`,
-                    {
-    method: "PUT",
-    credentials: "include",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        solved: newStatus
-    })
-}
-                );
+                
+const response = await fetch(
+    `http://localhost:8080/api/dsa/${problem.id}`,
+    {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": getCsrfToken()
+        },
+        body: JSON.stringify({
+            solved: newStatus
+        })
+    }
+);
+
 
                 if (!response.ok) {
                     throw new Error("Failed to update DSA problem");
@@ -228,13 +278,18 @@ function displayDsaProblems() {
 
         deleteButton.addEventListener("click", async function () {
             try {
-                const response = await fetch(
-                    `http://localhost:8080/api/dsa/${problem.id}`,
-                    {
-    method: "DELETE",
-    credentials: "include"
-}
-                );
+                
+const response = await fetch(
+    `http://localhost:8080/api/dsa/${problem.id}`,
+    {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+            "X-XSRF-TOKEN": getCsrfToken()
+        }
+    }
+);
+
 
                 if (!response.ok) {
                     throw new Error("Failed to delete DSA problem");
@@ -272,16 +327,21 @@ async function addDsaProblem() {
     }
 
     try {
-        const response = await fetch("http://localhost:8080/api/dsa", {
+        
+const response = await fetch("http://localhost:8080/api/dsa", {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+        "Content-Type": "application/json",
+        "X-XSRF-TOKEN": getCsrfToken()
+    },
     body: JSON.stringify({
         name: name,
         difficulty: difficulty.value,
         solved: false
     })
 });
+
 
         if (!response.ok) {
             throw new Error("Failed to add DSA problem");
@@ -334,19 +394,22 @@ checkbox.addEventListener("change", async function () {
     const topic = interviewTopics[index];
 
     try {
-        const response = await fetch(
-            `http://localhost:8080/api/interview-topics/${topic.id}`,
-            {
-                method: "PUT",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    completed: checkbox.checked
-                })
-            }
-        );
+        
+const response = await fetch(
+    `http://localhost:8080/api/interview-topics/${topic.id}`,
+    {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": getCsrfToken()
+        },
+        body: JSON.stringify({
+            completed: checkbox.checked
+        })
+    }
+);
+
 
         if (!response.ok) {
             throw new Error("Failed to update topic");
@@ -371,13 +434,18 @@ deleteButton.addEventListener("click", async function () {
     const topic = interviewTopics[index];
 
     try {
-        const response = await fetch(
-            `http://localhost:8080/api/interview-topics/${topic.id}`,
-            {
-    method: "DELETE",
-    credentials: "include"
-}
-        );
+        
+const response = await fetch(
+    `http://localhost:8080/api/interview-topics/${topic.id}`,
+    {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+            "X-XSRF-TOKEN": getCsrfToken()
+        }
+    }
+);
+
 
         if (!response.ok) {
             throw new Error("Failed to delete topic");
@@ -414,23 +482,24 @@ async function addInterviewTopic() {
     }
 
     try {
-        const response = await fetch(
-            "http://localhost:8080/api/interview-topics",
-            {
-                
-method: "POST",
-credentials: "include",
-headers: {
-    "Content-Type": "application/json"
-},
-body: JSON.stringify({
+        
+const response = await fetch(
+    "http://localhost:8080/api/interview-topics",
+    {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": getCsrfToken()
+        },
+        body: JSON.stringify({
+            subject: subject,
+            name: name,
+            completed: false
+        })
+    }
+);
 
-                    subject: subject,
-                    name: name,
-                    completed: false
-                })
-            }
-        );
 
         if (!response.ok) {
             throw new Error("Failed to add interview topic");
@@ -505,16 +574,50 @@ updateProgress();
 ========================= */
 
 /* Save reviewed Java questions */
-let reviewedQuestions = JSON.parse(
-    localStorage.getItem("reviewedJavaQuestions")
-) || [];
 
-function saveReviewedQuestions() {
-    localStorage.setItem(
-        "reviewedJavaQuestions",
-        JSON.stringify(reviewedQuestions)
+let reviewedQuestions = [];
+
+async function loadReviewedQuestionsFromBackend() {
+    const response = await fetch(
+        `${API_BASE}/api/java-question-progress`,
+        {
+            method: "GET",
+            credentials: "include"
+        }
     );
+
+    if (!response.ok) {
+        throw new Error("Failed to load Java revision progress");
+    }
+
+    const progress = await response.json();
+
+    reviewedQuestions = progress
+        .filter(item => item.reviewed)
+        .map(item => item.questionKey);
+
+    displayJavaQuestions();
 }
+
+async function saveReviewedQuestion(questionKey, reviewed) {
+    const response = await fetch(
+        `${API_BASE}/api/java-question-progress/${encodeURIComponent(questionKey)}`,
+        {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "X-XSRF-TOKEN": getCsrfToken()
+            },
+            body: JSON.stringify({ reviewed })
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to save Java revision progress");
+    }
+}
+
 
 const javaQuestions = [
     {
@@ -644,18 +747,33 @@ if (isReviewed) {
     reviewButton.style.background = "#16a34a";
 }
 
-reviewButton.addEventListener("click", function () {
-    if (reviewedQuestions.includes(questionId)) {
-        reviewedQuestions = reviewedQuestions.filter(function (id) {
-            return id !== questionId;
-        });
-    } else {
-        reviewedQuestions.push(questionId);
-    }
 
-    saveReviewedQuestions();
-    displayJavaQuestions();
+reviewButton.addEventListener("click", async function () {
+    const wasReviewed = reviewedQuestions.includes(questionId);
+    const newReviewedStatus = !wasReviewed;
+
+    reviewButton.disabled = true;
+
+    try {
+        await saveReviewedQuestion(questionId, newReviewedStatus);
+
+        if (newReviewedStatus) {
+            reviewedQuestions.push(questionId);
+        } else {
+            reviewedQuestions = reviewedQuestions.filter(function (id) {
+                return id !== questionId;
+            });
+        }
+
+        displayJavaQuestions();
+    } catch (error) {
+        console.error("Error saving Java review progress:", error);
+        alert("Could not save your review progress. Please try again.");
+    } finally {
+        reviewButton.disabled = false;
+    }
 });
+
 
 card.appendChild(topic);
 card.appendChild(question);
@@ -798,6 +916,9 @@ async function loadInterviewTopicsFromBackend() {
 
 const API_BASE = "http://localhost:8080";
 
+const csrfReady = initializeCsrfToken();
+
+
 document.getElementById("registerForm").addEventListener("submit", async function (event) {
     event.preventDefault();
 
@@ -805,17 +926,21 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     message.textContent = "Registering...";
 
     try {
-        const response = await fetch(`${API_BASE}/api/auth/register`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: document.getElementById("registerName").value.trim(),
-                email: document.getElementById("registerEmail").value.trim(),
-                password: document.getElementById("registerPassword").value
-            })
-        });
+        await csrfReady;
+const response = await fetch(`${API_BASE}/api/auth/register`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+        "Content-Type": "application/json",
+        "X-XSRF-TOKEN": getCsrfToken()
+    },
+    body: JSON.stringify({
+        name: document.getElementById("registerName").value.trim(),
+        email: document.getElementById("registerEmail").value.trim(),
+        password: document.getElementById("registerPassword").value
+    })
+});
+
 
         const result = await response.text();
 
@@ -838,17 +963,20 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     message.textContent = "Logging in...";
 
     try {
-        const response = await fetch(`${API_BASE}/api/auth/login`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: document.getElementById("loginEmail").value.trim(),
-                password: document.getElementById("loginPassword").value
-            })
-        });
+        await csrfReady;
+const response = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+        "Content-Type": "application/json",
+        "X-XSRF-TOKEN": getCsrfToken()
+    },
+    body: JSON.stringify({
+        email: document.getElementById("loginEmail").value.trim(),
+        password: document.getElementById("loginPassword").value
+    })
+});
+
 
         const result = await response.text();
 
@@ -857,7 +985,8 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         }
 
         message.textContent = result;
-
+        await initializeCsrfToken();
+        await loadReviewedQuestionsFromBackend();
         document.getElementById("auth-section").hidden = true;
         document.getElementById("app-dashboard").hidden = false;
 
@@ -878,10 +1007,15 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
 document.getElementById("logoutButton").addEventListener("click", async function () {
     try {
-        const response = await fetch(`${API_BASE}/api/auth/logout`, {
-            method: "POST",
-            credentials: "include"
-        });
+        await csrfReady;
+const response = await fetch(`${API_BASE}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+        "X-XSRF-TOKEN": getCsrfToken()
+    }
+});
+
 
         const result = await response.text();
 
