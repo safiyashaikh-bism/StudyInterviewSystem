@@ -38,7 +38,7 @@ function getCsrfToken() {
 let tasks = JSON.parse(localStorage.getItem("studyTasks")) || [];
 
 let dsaProblems = [];
-
+let javaPracticeProblems = [];
 let interviewTopics = [];
 
 function saveTasks() {
@@ -316,6 +316,43 @@ const response = await fetch(
 
 
 
+function displayJavaPracticeProblems() {
+    const list = document.getElementById("javaPracticeList");
+    list.innerHTML = "";
+
+    javaPracticeProblems.forEach(function (problem) {
+        const li = document.createElement("li");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = problem.solved;
+
+        checkbox.addEventListener("change", function () {
+            updateJavaPracticeStatus(problem.id, checkbox.checked);
+        });
+
+        const text = document.createElement("span");
+        text.textContent =
+            problem.name + " (" + problem.difficulty + ")";
+
+        if (problem.solved) {
+            text.style.textDecoration = "line-through";
+        }
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", function () {
+            deleteJavaPracticeProblem(problem.id);
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(text);
+        li.appendChild(deleteButton);
+
+        list.appendChild(li);
+    });
+}
+
 async function addDsaProblem() {
     const input = document.getElementById("dsaInput");
     const difficulty = document.getElementById("dsaDifficulty");
@@ -369,6 +406,134 @@ const response = await fetch("http://localhost:8080/api/dsa", {
     }
 }
 
+
+async function addJavaPractice() {
+    const input = document.getElementById("javaPracticeInput");
+    const difficulty = document.getElementById("javaPracticeDifficulty");
+    const name = input.value.trim();
+
+    if (name === "") {
+        alert("Please enter a Java question!");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/java-practice",
+            {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-XSRF-TOKEN": getCsrfToken()
+                },
+                body: JSON.stringify({
+                    name: name,
+                    difficulty: difficulty.value,
+                    solved: false
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to add Java Practice question");
+        }
+
+        const newProblem = await response.json();
+
+        javaPracticeProblems.push(newProblem);
+        displayJavaPracticeProblems();
+        updateProgress();
+
+        input.value = "";
+        input.focus();
+
+        console.log("Java Practice question saved:", newProblem);
+
+    } catch (error) {
+        console.error("Error adding Java Practice question:", error);
+        alert("Could not save the Java Practice question. Please check that Spring Boot is running.");
+    }
+}
+
+async function updateJavaPracticeStatus(id, solved) {
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/java-practice/" + id,
+            {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-XSRF-TOKEN": getCsrfToken()
+                },
+                body: JSON.stringify({
+                    solved: solved
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to update Java Practice status");
+        }
+
+        const problem = javaPracticeProblems.find(function (item) {
+            return item.id === id;
+        });
+
+        if (problem) {
+            problem.solved = solved;
+        }
+
+        displayJavaPracticeProblems();
+        updateProgress();
+
+    } catch (error) {
+        console.error("Error updating Java Practice status:", error);
+        alert("Could not update the solved status. Please try again.");
+        await loadJavaPracticeFromBackend();
+    }
+}
+
+async function deleteJavaPracticeProblem(id) {
+    const confirmed = confirm(
+        "Are you sure you want to delete this Java question?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/java-practice/" + id,
+            {
+                method: "DELETE",
+                credentials: "include",
+                headers: {
+                    "X-XSRF-TOKEN": getCsrfToken()
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to delete Java Practice question");
+        }
+
+        javaPracticeProblems = javaPracticeProblems.filter(
+            function (problem) {
+                return problem.id !== id;
+            }
+        );
+
+        displayJavaPracticeProblems();
+        updateProgress();
+
+    } catch (error) {
+        console.error("Error deleting Java Practice question:", error);
+        alert("Could not delete the Java Practice question. Please try again.");
+    }
+}
 
 function displayInterviewTopics() {
     const interviewList = document.getElementById("interviewList");
@@ -530,7 +695,11 @@ function updateProgress() {
     const solvedDsa = dsaProblems.filter(function (problem) {
         return problem.solved;
     }).length;
+    const totalJavaPractice = javaPracticeProblems.length;
 
+const solvedJavaPractice = javaPracticeProblems.filter(function (problem) {
+    return problem.solved;
+}).length;
     const totalInterview = interviewTopics.length;
 
     const completedInterview = interviewTopics.filter(function (topic) {
@@ -544,11 +713,38 @@ function updateProgress() {
     
 document.getElementById("totalInterview").textContent = totalInterview;
 document.getElementById("completedInterview").textContent = completedInterview;
+const taskPercentage = totalTasks === 0
+    ? 0
+    : Math.round((completedTasks / totalTasks) * 100);
 
-    const totalItems = totalTasks + totalDsa + totalInterview;
+const dsaPercentage = totalDsa === 0
+    ? 0
+    : Math.round((solvedDsa / totalDsa) * 100);
 
-    const completedItems =
-        completedTasks + solvedDsa + completedInterview;
+const interviewPercentage = totalInterview === 0
+    ? 0
+    : Math.round((completedInterview / totalInterview) * 100);
+
+const javaPracticePercentage = totalJavaPractice === 0
+    ? 0
+    : Math.round((solvedJavaPractice / totalJavaPractice) * 100);
+
+document.getElementById("tasksProgressText").textContent =
+    taskPercentage + "%";
+
+document.getElementById("dsaProgressText").textContent =
+    dsaPercentage + "%";
+
+document.getElementById("interviewProgressText").textContent =
+    interviewPercentage + "%";
+    const totalItems =
+    totalTasks + totalDsa + totalJavaPractice + totalInterview;
+
+document.getElementById("javaPracticeProgressText").textContent =
+    javaPracticePercentage + "%";
+
+const completedItems =
+    completedTasks + solvedDsa + solvedJavaPractice + completedInterview;
 
     const percentage = totalItems === 0
         ? 0
@@ -890,6 +1086,31 @@ async function loadDsaProblemsFromBackend() {
     }
 }
 
+async function loadJavaPracticeFromBackend() {
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/java-practice",
+            {
+                credentials: "include"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to load Java Practice questions");
+        }
+
+        javaPracticeProblems = await response.json();
+
+        displayJavaPracticeProblems();
+
+        console.log("Java Practice questions loaded successfully!");
+
+    } catch (error) {
+        console.error("Failed to load Java Practice questions:", error);
+        alert("Could not load Java Practice questions. Please check that Spring Boot is running.");
+    }
+}
+
 
 async function loadInterviewTopicsFromBackend() {
     try {
@@ -996,8 +1217,9 @@ const response = await fetch(`${API_BASE}/api/auth/login`, {
         document.getElementById("loginForm").reset();
 
         await loadTasksFromBackend();
-        await loadDsaProblemsFromBackend();
-        await loadInterviewTopicsFromBackend();
+await loadDsaProblemsFromBackend();
+await loadInterviewTopicsFromBackend();
+await loadJavaPracticeFromBackend();
 
     } catch (error) {
         message.textContent = error.message;
@@ -1035,3 +1257,486 @@ const response = await fetch(`${API_BASE}/api/auth/logout`, {
     }
 });
 
+
+const javaQuizQuestions = [
+    {
+        topic: "OOP",
+        question: "Which concept allows a class to inherit properties from another class?",
+        options: ["Encapsulation", "Inheritance", "Polymorphism", "Abstraction"],
+        answer: 1,
+        explanation: "Inheritance allows a class to acquire properties and methods from another class."
+    },
+    {
+        topic: "OOP",
+        question: "Which keyword is used to create an object in Java?",
+        options: ["class", "this", "new", "static"],
+        answer: 2,
+        explanation: "The new keyword creates an object and allocates memory for it."
+    },
+    {
+        topic: "Strings",
+        question: "Which method compares the contents of two Java strings?",
+        options: ["==", "compare()", "equals()", "same()"],
+        answer: 2,
+        explanation: "equals() compares string contents, while == compares object references."
+    },
+    {
+        topic: "Strings",
+        question: "Which class creates a mutable sequence of characters?",
+        options: ["String", "StringBuilder", "Character", "Scanner"],
+        answer: 1,
+        explanation: "StringBuilder allows strings to be modified without creating a new object for every change."
+    },
+    {
+        topic: "Collections",
+        question: "Which collection stores unique elements?",
+        options: ["ArrayList", "LinkedList", "HashSet", "Array"],
+        answer: 2,
+        explanation: "HashSet stores unique elements and does not guarantee their iteration order."
+    },
+    {
+        topic: "Collections",
+        question: "Which interface represents key-value mappings in Java?",
+        options: ["List", "Queue", "Set", "Map"],
+        answer: 3,
+        explanation: "Map stores entries as key-value pairs, with unique keys."
+    },
+    {
+        topic: "Exceptions",
+        question: "Which block normally executes whether an exception occurs or not?",
+        options: ["try", "catch", "finally", "throw"],
+        answer: 2,
+        explanation: "The finally block normally executes whether an exception occurs or not."
+    },
+    {
+        topic: "Exceptions",
+        question: "Which keyword explicitly throws an exception?",
+        options: ["throws", "throw", "try", "catch"],
+        answer: 1,
+        explanation: "throw is used to explicitly throw an exception. throws declares possible exceptions in a method signature."
+    }
+];
+
+let activeJavaQuizQuestions = [];
+let javaQuizIndex = 0;
+let javaQuizScore = 0;
+let javaQuizAnswered = false;
+
+function startJavaQuiz() {
+    const topic = document.getElementById("javaQuizTopic").value;
+
+    activeJavaQuizQuestions = topic === "All"
+        ? [...javaQuizQuestions]
+        : javaQuizQuestions.filter(function (question) {
+            return question.topic === topic;
+        });
+
+    if (activeJavaQuizQuestions.length === 0) {
+        alert("No questions available for this topic.");
+        return;
+    }
+
+    javaQuizIndex = 0;
+    javaQuizScore = 0;
+    javaQuizAnswered = false;
+
+    document.getElementById("javaQuizArea").hidden = false;
+    document.getElementById("javaQuizResult").hidden = true;
+    document.getElementById("startJavaQuizButton").textContent = "Restart Quiz";
+
+    showJavaQuizQuestion();
+}
+
+function showJavaQuizQuestion() {
+    const question = activeJavaQuizQuestions[javaQuizIndex];
+
+    javaQuizAnswered = false;
+
+    document.getElementById("javaQuizQuestion").textContent =
+        "Question " + (javaQuizIndex + 1) + " of " +
+        activeJavaQuizQuestions.length + ": " + question.question;
+
+    const optionsArea = document.getElementById("javaQuizOptions");
+    optionsArea.innerHTML = "";
+
+    question.options.forEach(function (option, index) {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.style.display = "block";
+        button.style.margin = "8px 0";
+        button.addEventListener("click", function () {
+            selectJavaQuizAnswer(index);
+        });
+        optionsArea.appendChild(button);
+    });
+
+    document.getElementById("nextJavaQuizButton").hidden = true;
+}
+
+function selectJavaQuizAnswer(selectedIndex) {
+    if (javaQuizAnswered) {
+        return;
+    }
+
+    javaQuizAnswered = true;
+
+    const question = activeJavaQuizQuestions[javaQuizIndex];
+    const buttons = document.getElementById("javaQuizOptions").querySelectorAll("button");
+
+    if (selectedIndex === question.answer) {
+        javaQuizScore++;
+    }
+
+    buttons.forEach(function (button, index) {
+        button.disabled = true;
+
+        if (index === question.answer) {
+            button.textContent += " ✓ Correct answer";
+        } else if (index === selectedIndex) {
+            button.textContent += " ✗ Your answer";
+        }
+    });
+
+    const result = document.getElementById("javaQuizResult");
+    result.hidden = false;
+    result.textContent = question.explanation;
+
+    const nextButton = document.getElementById("nextJavaQuizButton");
+    nextButton.hidden = false;
+    nextButton.textContent =
+        javaQuizIndex === activeJavaQuizQuestions.length - 1
+            ? "See Final Score"
+            : "Next Question";
+}
+
+
+async function nextJavaQuizQuestion() {
+    if (!javaQuizAnswered) {
+        return;
+    }
+
+    if (javaQuizIndex < activeJavaQuizQuestions.length - 1) {
+        javaQuizIndex++;
+        document.getElementById("javaQuizResult").hidden = true;
+        showJavaQuizQuestion();
+    } else {
+        const totalQuestions = activeJavaQuizQuestions.length;
+
+        document.getElementById("javaQuizQuestion").textContent =
+            "Quiz completed! You scored " + javaQuizScore + " out of " +
+            totalQuestions + ".";
+
+        document.getElementById("javaQuizOptions").innerHTML = "";
+        document.getElementById("javaQuizResult").hidden = true;
+        document.getElementById("nextJavaQuizButton").hidden = true;
+
+        const topic = document.getElementById("javaQuizTopic").value;
+
+        try {
+            const response = await fetch(
+                "http://localhost:8080/api/java-quiz-results",
+                {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-XSRF-TOKEN": getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        score: javaQuizScore,
+                        totalQuestions: totalQuestions,
+                        topic: topic
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Could not save quiz result.");
+            }
+
+            document.getElementById("javaQuizQuestion").textContent +=
+                " Result saved successfully!";
+        } catch (error) {
+            console.error("Quiz result save error:", error);
+            alert(
+                "Your quiz is complete, but the result could not be saved. " +
+                "Please check that you are logged in and the backend is running."
+            );
+        }
+    }
+}
+
+
+async function loadJavaQuizHistory() {
+    const historyList = document.getElementById("javaQuizHistoryList");
+    const message = document.getElementById("javaQuizHistoryMessage");
+
+    historyList.innerHTML = "";
+    message.textContent = "Loading quiz history...";
+
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/java-quiz-results",
+            {
+                method: "GET",
+                credentials: "include"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Could not load quiz history.");
+        }
+
+        const results = await response.json();
+
+        if (results.length === 0) {
+            message.textContent = "You haven't completed any quizzes yet.";
+            return;
+        }
+
+        message.textContent = "";
+
+        results.sort(function (a, b) {
+            return new Date(b.attemptedAt) - new Date(a.attemptedAt);
+        });
+
+        results.forEach(function (result) {
+            const item = document.createElement("li");
+
+            const date = result.attemptedAt
+                ? new Date(result.attemptedAt).toLocaleString()
+                : "Date unavailable";
+
+            item.textContent =
+                result.topic + " — Score: " +
+                result.score + "/" + result.totalQuestions +
+                " — " + date;
+
+            historyList.appendChild(item);
+        });
+    } catch (error) {
+        console.error("Quiz history error:", error);
+        message.textContent =
+            "Unable to load quiz history. Please log in and try again.";
+    }
+}
+
+async function loadJavaQuizAnalytics() {
+    const content = document.getElementById("javaQuizAnalyticsContent");
+    const message = document.getElementById("javaQuizAnalyticsMessage");
+
+    message.textContent = "Loading performance analytics...";
+    content.hidden = true;
+
+    try {
+        const response = await fetch(
+            "http://localhost:8080/api/java-quiz-results",
+            {
+                method: "GET",
+                credentials: "include"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Could not load quiz results.");
+        }
+
+        const results = await response.json();
+
+        if (results.length === 0) {
+            message.textContent = "Complete a Java quiz to see your analytics.";
+            return;
+        }
+
+        const totalAttempts = results.length;
+        let totalQuestions = 0;
+        let totalCorrect = 0;
+        let bestScore = 0;
+        const topicStats = {};
+
+        results.forEach(function (result) {
+            const score = Number(result.score);
+            const total = Number(result.totalQuestions);
+            const topic = result.topic || "Unknown";
+
+            totalCorrect += score;
+            totalQuestions += total;
+            bestScore = Math.max(bestScore, score);
+
+            if (!topicStats[topic]) {
+                topicStats[topic] = {
+                    correct: 0,
+                    questions: 0,
+                    attempts: 0
+                };
+            }
+
+            topicStats[topic].correct += score;
+            topicStats[topic].questions += total;
+            topicStats[topic].attempts++;
+        });
+
+        const accuracy = totalQuestions > 0
+            ? Math.round((totalCorrect / totalQuestions) * 100)
+            : 0;
+
+        document.getElementById("javaQuizTotalAttempts").textContent =
+            "Total quiz attempts: " + totalAttempts;
+
+        document.getElementById("javaQuizOverallAccuracy").textContent =
+            "Overall accuracy: " + accuracy + "%";
+
+        document.getElementById("javaQuizBestScore").textContent =
+            "Best score: " + bestScore + " correct answers in one quiz";
+
+        const topicList = document.getElementById("javaQuizTopicPerformance");
+        topicList.innerHTML = "";
+
+        Object.keys(topicStats).forEach(function (topic) {
+            const stats = topicStats[topic];
+            const topicAccuracy = stats.questions > 0
+                ? Math.round((stats.correct / stats.questions) * 100)
+                : 0;
+
+            const item = document.createElement("li");
+            item.textContent =
+                topic + ": " + topicAccuracy + "% accuracy (" +
+                stats.attempts + " attempt(s))";
+
+            topicList.appendChild(item);
+        });
+
+        content.hidden = false;
+        message.textContent = "";
+    } catch (error) {
+        console.error("Quiz analytics error:", error);
+        message.textContent =
+            "Unable to load analytics. Please log in and try again.";
+    }
+}
+
+
+const javaCodingProblems = {
+    reverse: {
+        title: "Reverse a String",
+        statement: "Write a Java program that reverses the given string.",
+        sampleInput: "hello",
+        sampleOutput: "olleh",
+        template: `public class Main {
+    public static void main(String[] args) {
+        String str = "hello";
+
+        // Write your logic here
+
+        System.out.println(str);
+    }
+}`
+    },
+    palindrome: {
+        title: "Check Palindrome",
+        statement: "Check whether a string reads the same forward and backward. Ignore letter case.",
+        sampleInput: "Madam",
+        sampleOutput: "Palindrome",
+        template: `public class Main {
+    public static void main(String[] args) {
+        String str = "Madam";
+
+        // Write your logic here
+
+    }
+}`
+    },
+    largest: {
+        title: "Find Largest Element",
+        statement: "Find the largest number in an integer array.",
+        sampleInput: "[4, 9, 2, 7]",
+        sampleOutput: "9",
+        template: `public class Main {
+    public static void main(String[] args) {
+        int[] arr = {4, 9, 2, 7};
+
+        // Write your logic here
+
+    }
+}`
+    }
+};
+
+
+function openJavaCodingProblem() {
+    const selectedProblem =
+        document.getElementById("javaCodingProblemSelect").value;
+
+    const problem = javaCodingProblems[selectedProblem];
+
+    if (!problem) {
+        alert("Please select a valid coding problem.");
+        return;
+    }
+
+    document.getElementById("javaCodingProblemTitle").textContent =
+        problem.title;
+
+    document.getElementById("javaCodingProblemStatement").textContent =
+        problem.statement;
+
+    document.getElementById("javaCodingSampleInput").textContent =
+        problem.sampleInput;
+
+    document.getElementById("javaCodingSampleOutput").textContent =
+        problem.sampleOutput;
+
+    document.getElementById("javaCodingProblemDetails").hidden = false;
+    document.getElementById("javaCodingCode").value = problem.template;
+}
+
+function resetJavaCodingCode() {
+    const codeEditor = document.getElementById("javaCodingCode");
+
+    codeEditor.value = "";
+    codeEditor.focus();
+}
+
+document.getElementById("javaCodingProblemSelect").addEventListener(
+    "change",
+    function () {
+        openJavaCodingProblem();
+    }
+);
+
+
+async function runJavaCodingCode() {
+    const code = document.getElementById("javaCodingCode").value;
+    const outputPanel = document.getElementById("javaCodingOutput");
+    const csrfToken = await getCsrfToken();
+
+    outputPanel.textContent = "Running your Java code...";
+
+    try {
+        const response = await fetch("http://localhost:8080/api/java-code/run", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-XSRF-TOKEN": csrfToken
+            },
+            credentials: "include",
+            body: JSON.stringify({ code: code })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            outputPanel.textContent =
+                result.error || "Unable to execute the code.";
+            return;
+        }
+
+        outputPanel.textContent =
+            result.error || result.output || "Program executed with no output.";
+
+    } catch (error) {
+        outputPanel.textContent =
+            "Could not connect to the backend. Check whether Spring Boot is running.";
+        console.error(error);
+    }
+}

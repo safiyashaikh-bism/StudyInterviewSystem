@@ -157,7 +157,142 @@
     <ul id="dsaList"></ul>
 </div>
 
-            
+
+<div class="card">
+    <h3>Java Practice</h3>
+    
+<p id="javaCodingPracticeDescription">
+    Choose a coding problem, read the requirements,
+    and practise writing a Java solution.
+</p>
+
+<div class="task-input">
+    <select id="javaCodingProblemSelect">
+        <option value="reverse">Reverse a String</option>
+        <option value="palindrome">Check Palindrome</option>
+        <option value="largest">Find Largest Element</option>
+    </select>
+    <button onclick="openJavaCodingProblem()">
+        Open Problem
+    </button>
+</div>
+
+<div id="javaCodingProblemDetails" hidden>
+    <h4 id="javaCodingProblemTitle"></h4>
+    <p id="javaCodingProblemStatement"></p>
+    <p><strong>Sample input:</strong> <span id="javaCodingSampleInput"></span></p>
+    <p><strong>Sample output:</strong> <span id="javaCodingSampleOutput"></span></p>
+</div>
+
+<div id="javaCodingEditor">
+    <h4>Write Your Java Solution</h4>
+
+    
+<textarea
+    id="javaCodingCode"
+    rows="22"
+    placeholder="Write your Java code here..."
+    spellcheck="false"
+    style="width: 100%; min-height: 400px; box-sizing: border-box; font-family: Consolas, monospace; font-size: 15px; padding: 14px; resize: vertical;"
+></textarea>
+<button onclick="runJavaCodingCode()">Run Code</button>
+
+    <button onclick="resetJavaCodingCode()">
+        Reset Code
+    </button>
+    
+<div id="javaCodingOutputPanel" class="output-panel">
+    <h4>Program Output</h4>
+    <pre id="javaCodingOutput">Run your Java code to see the output here.</pre>
+</div>
+
+</div>
+
+    <p>Track your Java coding practice and interview preparation.</p>
+
+    <div class="task-input">
+        <input
+            type="text"
+            id="javaPracticeInput"
+            placeholder="Enter Java question..."
+        >
+
+        <select id="javaPracticeDifficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+
+        <button onclick="addJavaPractice()">Add</button>
+    </div>
+
+    <ul id="javaPracticeList"></ul>
+</div>
+
+<div class="card" id="javaQuizCard">
+    <h3>Java MCQ Quiz</h3>
+    <p>Test your Java knowledge and prepare for technical interviews.</p>
+
+    <div class="task-input">
+        <select id="javaQuizTopic">
+            <option value="All">All Topics</option>
+            <option value="OOP">Object-Oriented Programming</option>
+            <option value="Strings">Strings</option>
+            <option value="Collections">Collections</option>
+            <option value="Exceptions">Exception Handling</option>
+        </select>
+
+        <button id="startJavaQuizButton" onclick="startJavaQuiz()">
+            Start Quiz
+        </button>
+    </div>
+
+    <div id="javaQuizArea" hidden>
+        <p id="javaQuizQuestion"></p>
+        <div id="javaQuizOptions"></div>
+
+        <button id="nextJavaQuizButton" onclick="nextJavaQuizQuestion()">
+            Next Question
+        </button>
+
+        <div id="javaQuizResult" hidden></div>
+    </div>
+</div>
+
+<div class="card" id="javaQuizHistoryCard">
+    <h3>Java Quiz History</h3>
+    <p>Review your previous quiz attempts and scores.</p>
+
+    <button id="loadJavaQuizHistoryButton"
+            onclick="loadJavaQuizHistory()">
+        View Quiz History
+    </button>
+
+    <div id="javaQuizHistoryMessage"></div>
+    <ul id="javaQuizHistoryList"></ul>
+</div>
+
+<div class="card" id="javaQuizAnalyticsCard">
+    <h3>Java Quiz Performance Analytics</h3>
+    <p>Track your Java interview preparation progress.</p>
+
+    <button id="loadJavaQuizAnalyticsButton"
+            onclick="loadJavaQuizAnalytics()">
+        View Performance
+    </button>
+
+    <div id="javaQuizAnalyticsContent" hidden>
+        <p id="javaQuizTotalAttempts"></p>
+        <p id="javaQuizOverallAccuracy"></p>
+        <p id="javaQuizBestScore"></p>
+
+        <h4>Topic-wise Performance</h4>
+        <ul id="javaQuizTopicPerformance"></ul>
+    </div>
+
+    <p id="javaQuizAnalyticsMessage"></p>
+</div>
+
 <div class="card">
     <h3>Progress Overview</h3>
     <p>Track your study and coding progress.</p>
@@ -198,6 +333,25 @@
     </div>
 
     <p id="progressText">0% completed</p>
+    <div class="progress-item">
+    <span>Java Practice Progress</span>
+    <strong id="javaPracticeProgressText">0%</strong>
+</div>
+<div class="progress-item">
+    <span>Study Tasks Progress</span>
+    <strong id="tasksProgressText">0%</strong>
+</div>
+
+<div class="progress-item">
+    <span>DSA Progress</span>
+    <strong id="dsaProgressText">0%</strong>
+</div>
+
+<div class="progress-item">
+    <span>Interview Topics Progress</span>
+    <strong id="interviewProgressText">0%</strong>
+</div>
+
 </div>
 
         </section>

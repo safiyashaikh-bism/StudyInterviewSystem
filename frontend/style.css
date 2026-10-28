@@ -181,12 +181,16 @@ footer {
     color: var(--text);
 }
 
-#taskList input[type="checkbox"] {
+
+#taskList input[type="checkbox"],
+#dsaList input[type="checkbox"],
+#interviewList input[type="checkbox"] {
     width: 16px;
     height: 16px;
     accent-color: var(--primary);
     flex-shrink: 0;
 }
+
 
 /* Java interview questions */
 
@@ -785,4 +789,32 @@ input[type="checkbox"]:focus-visible {
     outline: 1px solid #8b83d7;
     outline-offset: 2px;
     box-shadow: none;
+}
+
+.output-panel {
+    margin-top: 20px;
+    padding: 16px;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #444;
+}
+
+.output-panel h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #ffffff;
+}
+
+#javaCodingOutput {
+    min-height: 40px;
+    margin: 0;
+    padding: 12px;
+    background-color: #111111;
+    color: #9ef59e;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: Consolas, monospace;
+    font-size: 14px;
 }
